@@ -1,24 +1,49 @@
 import axios from "axios";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/authContext";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("null");
+  const [error, setError] = useState("");
+
+  const { login } = useAuth();
+  //access login
+
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
-    const { user } = userContext();
-
     e.preventDefault();
+
+    //it will prevent default submission
+    //api call
+
     try {
       const response = await axios.post(
         "http://localhost:5000/api/auth/login",
-        { email, password }
-      ); //passing email,password
+        { email, password } //pass data
+      );
+      //store error in this variable
+
       if (response.data.success) {
-        alert("Sucessfully login");
+        //alert("Successfully login");// if suceesfully login what should we need to do => store cookies
+        login(response.data.user);
+        localStorage.setItem("token", response.data.token);
+
+        if (response.data.user.role === "admin") {
+          navigate("/admin-dashboard");
+        } else {
+          navigate("employee-dashboard");
+        }
       }
+
+      //console.log(response);
+      //go to server side and need to access data from this route, verify thne data
     } catch (error) {
+      //console.log(error.response ? error.response.data : error);
+      //console.log(error);
+
       if (error.response && !error.response.data.success) {
         setError(error.response.data.error);
       } else {
@@ -44,7 +69,7 @@ const Login = () => {
               className=" w-full px-3 py-2 border"
               placeholder="Enter Email"
               onChange={(e) => setEmail(e.target.value)}
-              required
+              required //fill up the frm
             />
           </div>
 

@@ -1,33 +1,42 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import User from '../models/User.js';
 
 const login = async( req,res) => {
 
+
+    //verify user credential with try,catch. 1.district data
 try{
 const {email,password} = req.body;
+
+//find user
 const user = await User.findOne({email})
 if(!user) {
     res.status(404).json({success:false, error:"User not found!"})
 }
-
+//user.password => encrypted
 const isMatch = await bcrypt.compare(password,user.password)
 if(!isMatch) {
     res.status(404).json({success:false, error:"wrong password"})
 }
-// if password match  generate token
-const token =  jwt.sign ({_id:user._id,role:user.role})
+
+//GENERATING TOKEN
+// if password match  generate token//
+const token =  jwt.sign ({_id:user._id,role:user.role},
 //payload=>data store inside the token
 
-process.env.JWT_KEY,{expiredIn:"10d"}
+process.env.JWT_KEY,{expiresIn:"10d"}
 //after 10 days it will be not worked!!
 
-res.status(200).json({success:true,token,user:{_id:user._id,name:user.name,role:user.role}})
+)
 
+
+res.status(200).json({success:true,token,user:{_id:user._id,name:user.name,role:user.role}})
+//RETURN TOKEN and user
 
 }
 catch(error){
-console.log(error.message)
+ res.status(500).json({success:false, error:error.message})
 }
 
 
